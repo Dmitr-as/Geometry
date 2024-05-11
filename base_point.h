@@ -4,7 +4,11 @@
 #include <iostream>
 #include <concepts>
 #include <numeric>
+#include <algorithm>
 #include <math.h>
+
+
+namespace gmtr {
 
 template<typename T>
 requires std::is_floating_point<T>::value
@@ -20,11 +24,10 @@ public:
     const T &z() const {return v[2];}
 
     bool isNull() const {
-        return std::all_of(std::begin(v), std::end(v), [](const auto& el){ return el == 0; });
-        //return v[0] == 0. && v[1] == 0. && v[2] == 0.;
+        return std::all_of(std::begin(v), std::end(v), [](const auto& el){ return el == T(0); });
     }
     constexpr T normQuad() const {
-        return std::accumulate(std::begin(v), std::end(v), 0, [](T val, T x){ return val+=x*x;});
+        return std::accumulate(std::begin(v), std::end(v), T(0), [](T val, T x){ return val+=x*x;});
         //return v[0]*v[0]+v[1]*v[1]+v[2]*v[2];
     }
     constexpr T norm() const {
@@ -42,7 +45,10 @@ public:
         return false;
     }
     constexpr Point3D normalazed() const {
-        return Point3D(*this)/norm();
+        auto nrm = normQuad();
+        if(nrm > 0)
+            return Point3D(*this)/norm();
+        return Point3D(*this);
     }
 
     auto operator+(const Point3D & point) const {
@@ -128,8 +134,16 @@ public:
 };
 
 template<typename T>
+std::ostream &operator<<(std::ostream &out, const Point3D<T> &point) {
+    out << "(" << point.x() << ", " << point.y() << ", " << point.z() << ")";
+    return out;
+}
+
+template<typename T>
 auto operator*(const T& mult, const Point3D<T> & point) {
     return point*mult;
+}
+
 }
 
 #endif // BASE_POINT_H

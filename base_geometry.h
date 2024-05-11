@@ -4,6 +4,44 @@
 //#include <math.h>
 #include "base_point.h"
 
+namespace gmtr {
+
+template<typename T>
+struct Line {
+    using P3D = Point3D<T>;
+private:
+    P3D pt_, dir_;
+public:
+    constexpr explicit Line(const P3D &point = P3D(), const P3D &dir = P3D())
+        : pt_(point), dir_(dir) {}
+
+    P3D point(T dist = T(0)) const {return pt_ + dist*dir_;}
+    P3D direction() const {return dir_;}
+
+    bool isValid() const {
+        return !dir_.isNull();
+    }
+
+    P3D projection(const P3D &point) const {
+        return pt_ - dir_ * P3D::dot(dir_, pt_ - point);
+    }
+    T distanceQuad(const P3D &point) {
+        return P3D::distanceQuad(point, projection(point));
+    }
+    T distance(const P3D &point) {
+        return sqrt( distanceQuad(point) );
+    }
+
+    T distance(const Line &line) { // дописать
+        return T(0);
+    }
+
+    friend std::ostream &operator<<(std::ostream &out, const Line &line) {
+        out << "line: point = " << line.pt_ << ", d = " << line.dir_;
+        return out;
+    }
+};
+
 template<typename T>
 struct Plane {
     using P3D = Point3D<T>;
@@ -25,7 +63,7 @@ public:
     T vectorDistance(const P3D& point) const { // векторизованное расстояние до точки, normal должен быть нормированным
         return P3D::dot(point, normal_) + distance_;
     }
-    P3D projection(const P3D &point) const {
+    P3D projection(const P3D& point) const { // normal должен быть нормированным
         return point - normal_ * vectorDistance(point);
     }
     static Plane createPlane(const P3D& pt1, const P3D& pt2, const P3D& pt3) {
@@ -44,11 +82,17 @@ public:
         if( plane.normal_.normalaze() ) {
             plane.distance_ = - P3D::dot(plane.normal_, pt1);
             if( !plane.isPositive( ptPositive ) ) {
-                plane.normal_ *= -1.;
-                plane.distance_ *= -1.;
+                plane.normal_ *= -1;
+                plane.distance_ *= -1;
             }
         }
         return plane;
+    }
+
+    static P3D cross(const Plane& pln1, const Plane& pln2, const Plane& pln3) {
+        auto v3 = P3D::mix(pln1.normal_, pln2.normal_, pln3.normal_);
+        auto pt = P3D::cross(pln1.normal_, pln2.normal_) + P3D::cross(pln2.normal_, pln3.normal_) + P3D::cross(pln3.normal_, pln1.normal_); // дописать
+        return pt / v3;
     }
 
     bool isPositive(const P3D& point) const { // точка находится с положительной стороны от плоскости
@@ -59,7 +103,7 @@ public:
     }
 
     friend std::ostream &operator<<(std::ostream &out, const Plane &plane) {
-        out << "nrm = " << plane.normal_ << ", d = " << plane.distance_;
+        out << "plane: nrm = " << plane.normal_ << ", d = " << plane.distance_;
         return out;
     }
 };
@@ -81,7 +125,7 @@ public:
         return pt1_ != pt2_;
     }
 
-    P3D projection(const P3D &point) const {
+    P3D projection(const P3D &point) const { // dir_ normalized
         return pt1_ - dir_ * P3D::dot(dir_, pt1_ - point);
     }
     // проекция точки в системе координат ребра
@@ -117,7 +161,7 @@ private:
 
 public:
     friend std::ostream &operator<<(std::ostream &out, const Edge &edge) {
-        out << "pt1 = " << edge.pt1_ << ", pt2 = " << edge.pt1_;
+        out << "edge: pt1 = " << edge.pt1_ << ", pt2 = " << edge.pt1_;
         return out;
     }
 };
@@ -140,11 +184,11 @@ public:
     P3D normal() const {return normal_;}
 
     bool isValid() const {
-        return !normal_.isNull();
+        return !normal().isNull();
     }
 
     P3D projection(const P3D &point) const {
-        return point - normal_ * P3D::dot(normal_, point - pt1_);
+        return point - normal() * P3D::dot(normal(), point - pt1_);
     }
 
     std::pair<T,T> alpha(const P3D &point) const {
@@ -153,15 +197,32 @@ public:
 private:
     std::pair<T,T> alphaPrivate(const P3D &projPoint) const {
         auto delPt = projPoint - pt1_;
-        //auto v2 = pt2 - pt1;
-        //auto v3 = pt3 - pt1;
-        auto ax2 = P3D::cross(normal_, dir2_);
-        auto ax3 = P3D::cross(normal_, dir1_);
+        auto ax2 = P3D::cross(normal(), dir2_);
+        auto ax3 = P3D::cross(normal(), dir1_);
         auto alpha1 = P3D::dot(ax2, delPt) / P3D::dot(ax2, dir1_);
         auto alpha2 = P3D::dot(ax3, delPt) / P3D::dot(ax3, dir2_);
         return {alpha1, alpha2};
     }
+
+public:
+    friend std::ostream &operator<<(std::ostream &out, const Triangle &triangle) {
+        out << "triangle: pt = " << triangle.pt1_ << ", dir1 = " << triangle.dir1_ << ", dir2 = " << triangle.dir2_;
+        return out;
+    }
+
+
 };
+
+template<typename T>
+Point3D<T> sphereCenterVector( const Point3D<T>& dir1, const Point3D<T>& dir2 ) { // center = pt1 + sphereCenterVector
+    auto v2lengthQuad = dir1.normQuad();
+    auto v3lengthQuad = dir2.normQuad();
+    auto v2v3 =  Point3D<T>::dot(dir1, dir2);
+    auto delta = T(2)*(v2lengthQuad*v3lengthQuad - v2v3*v2v3);
+    auto deltaA = v3lengthQuad*( v2lengthQuad - v2v3 );
+    auto deltaB = v2lengthQuad*( v3lengthQuad - v2v3 );
+    return ( dir2*deltaB + dir1*deltaA ) / delta;
+}
 
 template<typename T>
 struct Sphere {
@@ -173,6 +234,7 @@ public:
     explicit Sphere(const P3D& cntr, const T& rds)
         : center_(cntr), radius_(rds) {}
 
+    friend class Triangle<T>;
     P3D center() const {return center_;}
     T radius() const {return radius_;}
 
@@ -200,9 +262,15 @@ public:
         auto pt0 = P3D(delta1, delta2, delta3)*delta;
         return Sphere( pt0, (pt0 - pt1).norm() );
     }
+
     // окружность, описанная около треугольника
+    static Sphere<T> createSphere( const Triangle<T>& triangle ) {
+        auto ptd = sphereCenterVector(triangle.dir1_, triangle.dir2_);
+        return Sphere( triangle.pt1_ + ptd, ptd.norm() );
+    }
+
     static Sphere createSphere( const P3D& pt1, const P3D& pt2, const P3D& pt3 ) {
-        auto v2 = pt2 - pt1;
+        /*auto v2 = pt2 - pt1;
         auto v3 = pt3 - pt1;
         auto v2lengthQuad = v2.normQuad();
         auto v3lengthQuad = v3.normQuad();
@@ -212,12 +280,13 @@ public:
         auto deltaB = v2lengthQuad*( v3lengthQuad - v2v3 );
         auto a = deltaA / delta;
         auto b = deltaB / delta;
-        auto ptd = v3*b + v2*a;
+        auto ptd = v3*b + v2*a;*/
+        auto ptd = sphereCenterVector(pt2 - pt1, pt3 - pt1);
         return Sphere( pt1 + ptd, ptd.norm() );
     }
 
     friend std::ostream &operator<<(std::ostream &out, const Sphere &sphere) {
-        out << "cntr = " << sphere.center_ << ", r = " << sphere.radius_;
+        out << "sphere: cntr = " << sphere.center_ << ", r = " << sphere.radius_;
         return out;
     }
 };
@@ -235,5 +304,6 @@ bool goodTriangleNormals( const Point3D<T> &point1, const Point3D<T> &point2, co
 #define TriangleReal Triangle<double>
 #define SphereReal Sphere<double>
 
+}
 
 #endif // BASE_GEOMETRY_H
