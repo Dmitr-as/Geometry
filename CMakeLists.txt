@@ -7,8 +7,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 enable_testing()
 
-find_package(Boost REQUIRED)
-find_package(Boost COMPONENTS unit_test_framework REQUIRED)
+#find_package(Boost REQUIRED)
+#find_package(Boost COMPONENTS unit_test_framework REQUIRED)
 
 FILE( GLOB GET_HEAD_FILES *.h )
 

@@ -1,0 +1,4 @@
+#ifndef BASE_STATISTIC_H
+#define BASE_STATISTIC_H
+
+#endif // BASE_STATISTIC_H
