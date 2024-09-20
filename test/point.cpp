@@ -1,6 +1,5 @@
 #include <cassert>
 #include "../base_geometry.h"
-#include <QVector3D>
 
 using namespace std;
 using namespace gmtr;
