@@ -1,4 +1,2 @@
-#ifndef BASE_STATISTIC_H
-#define BASE_STATISTIC_H
+#pragma once
 
-#endif // BASE_STATISTIC_H

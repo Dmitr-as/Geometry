@@ -1,5 +1,4 @@
-#ifndef BASE_GEOMETRY_H
-#define BASE_GEOMETRY_H
+#pragma once
 
 //#include <math.h>
 #include "base_point.h"
@@ -25,22 +24,39 @@ public:
     P3D projection(const P3D &point) const {
         return pt_ - dir_ * P3D::dot(dir_, pt_ - point);
     }
-    T distanceQuad(const P3D &point) {
+    T distanceQuad(const P3D &point) const {
         return P3D::distanceQuad(point, projection(point));
     }
-    T distance(const P3D &point) {
+    T distance(const P3D &point) const {
         return sqrt( distanceQuad(point) );
     }
 
-    T distance(const Line &line) { // дописать
-        return T(0);
+    T distanceQuad(const Line &line) const { // дописать
+        auto d2 = P3D::dot( dir_, line.dir_ );
+        auto del = 1 - d2*d2;
+        if(del > 0) {
+            auto delPt = line.pt_ - pt_;
+            auto del2 = d2*P3D::dot(dir_, delPt) - P3D::dot(line.dir_, delPt);
+            auto del1 = P3D::dot(dir_, delPt) - d2*P3D::dot(line.dir_, delPt);
+            auto dir = line.pt_ - pt_ + (line.dir_*del2 - dir_*del1) / del;
+            return dir.normQuad();
+        }
+        return ( pt_ - line.projection( pt_ ) ).normQuad();
+    }
+    T distance(const Line &line) const {
+        return sqrt( distanceQuad(line) );
     }
 
-    friend std::ostream &operator<<(std::ostream &out, const Line &line) {
+    static Line createLine(const P3D &point1, const P3D &point2) {
+        return Line(point1, (point2 - point1).normalazed());
+    }
+
+    friend std::ostream &operator<<(std::ostream &out, const Line<T> &line) {
         out << "line: point = " << line.pt_ << ", d = " << line.dir_;
         return out;
     }
 };
+
 
 template<typename T>
 struct Plane {
@@ -60,13 +76,13 @@ public:
         return !normal_.isNull();
     }
 
-    T vectorDistance(const P3D& point) const { // векторизованное расстояние до точки, normal должен быть нормированным
+    T vectorDistance(const P3D& point) const { ///< векторизованное расстояние до точки, normal должен быть нормированным
         return P3D::dot(point, normal_) + distance_;
     }
     P3D projection(const P3D& point) const { // normal должен быть нормированным
         return point - normal_ * vectorDistance(point);
     }
-    static Plane createPlane(const P3D& pt1, const P3D& pt2, const P3D& pt3) {
+    static constexpr Plane createPlane(const P3D& pt1, const P3D& pt2, const P3D& pt3) {
         auto v1 = pt1 - pt2;
         auto v2 = pt1 - pt3;
         Plane plane(P3D::cross(v1, v2));
@@ -75,7 +91,7 @@ public:
         }
         return plane;
     }
-    static Plane createPlane( const P3D& pt1, const P3D& pt2, const P3D& pt3, const P3D& ptPositive ) {
+    static constexpr Plane createPlane( const P3D& pt1, const P3D& pt2, const P3D& pt3, const P3D& ptPositive ) {
         auto v1 = pt1 - pt2;
         auto v2 = pt1 - pt3;
         Plane plane(P3D::cross(v1, v2));
@@ -89,9 +105,12 @@ public:
         return plane;
     }
 
-    static P3D cross(const Plane& pln1, const Plane& pln2, const Plane& pln3) {
+    static constexpr P3D cross(const Plane& pln1, const Plane& pln2, const Plane& pln3) {
         auto v3 = P3D::mix(pln1.normal_, pln2.normal_, pln3.normal_);
-        auto pt = P3D::cross(pln1.normal_, pln2.normal_) + P3D::cross(pln2.normal_, pln3.normal_) + P3D::cross(pln3.normal_, pln1.normal_); // дописать
+        auto pt =
+                P3D::cross(pln3.normal_, pln2.normal_)*pln1.distance_ +
+                P3D::cross(pln2.normal_, pln1.normal_)*pln3.distance_ +
+                P3D::cross(pln1.normal_, pln3.normal_)*pln2.distance_;
         return pt / v3;
     }
 
@@ -102,11 +121,13 @@ public:
         return vectorDistance(point) < 0;
     }
 
-    friend std::ostream &operator<<(std::ostream &out, const Plane &plane) {
+    friend std::ostream &operator<<(std::ostream &out, const Plane<T> &plane) {
         out << "plane: nrm = " << plane.normal_ << ", d = " << plane.distance_;
         return out;
     }
 };
+
+
 
 template<typename T>
 struct Edge {
@@ -305,5 +326,3 @@ bool goodTriangleNormals( const Point3D<T> &point1, const Point3D<T> &point2, co
 #define SphereReal Sphere<double>
 
 }
-
-#endif // BASE_GEOMETRY_H

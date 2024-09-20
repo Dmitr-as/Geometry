@@ -9,9 +9,14 @@ int main(int argc, char *argv[])
     {
         cout << "tests Point3D" << endl;
         Point3DReal pt1(1,1,0), pt2(0,-1,1), pt3;
+
+        cout << "normalazed " << pt1.normalazed() << endl;
+        cout << "normalazed " << pt3.normalazed() << endl;
         assert( !pt1.isNull() );
         assert( !pt2.isNull() );
         assert( pt3.isNull() );
+        pt3 = pt1 + pt2;
+
         cout << "point1 = " << pt1 << " point2 = " << pt2 << " point3 = " << pt3 << endl;
         assert(pt1 + pt2 == Point3DReal(1,0,1));
         assert(Point3DReal::dot(pt1, pt2) == -1);
@@ -64,7 +69,7 @@ int main(int argc, char *argv[])
     {
         cout << "----- ----- ----- " << endl;
         Point3DReal pt1(1,0,0), pt2(0,1,0), pt3(0,0,1);
-        PlaneReal plane( PlaneReal::createPlane(pt1, pt2, pt3) );
+        PlaneReal plane = PlaneReal::createPlane(pt1, pt2, pt3);
         cout << "plane "<< plane << endl;
         if(plane.isPositive( pt2 ))
             cout << "positive" << endl;
@@ -116,5 +121,11 @@ int main(int argc, char *argv[])
              << " " << (pt2 - sphere.center()).norm()
              << " " << (pt1 - sphere.center()).norm() << endl;
     }
+
+    PlaneReal pln, pln1(Point3DReal(0,0,1));
+    Point3DReal p1(10,10,10);
+    //assert( pln1.projection(p1) == Point3DReal(10, 0, 10) );
+    cout << pln1.projection(p1) << endl;
+
     return EXIT_SUCCESS;
 }
