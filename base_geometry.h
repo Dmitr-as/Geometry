@@ -149,7 +149,7 @@ public:
     P3D projection(const P3D &point) const { // dir_ normalized
         return pt1_ - dir_ * P3D::dot(dir_, pt1_ - point);
     }
-    // проекция точки в системе координат ребра
+    ///< проекция точки в системе координат ребра
     T alpha(const P3D &point) const { // prPt = pt1*alpha + pt2*(1-alpha)
         return alphaPrivate( projection(point) );
     }
@@ -262,11 +262,11 @@ public:
     bool isValid() const {
         return (center_ == center_) && radius_ > 0;
     }
-
-    T vectorDistance(const P3D& point) const { // векторизованное расстояние до сферы
+    ///< векторизованное расстояние до сферы
+    T vectorDistance(const P3D& point) const {
         return P3D::distance(center_, point) - radius_;
     }
-    // сфера, описанная около тетраэдра
+    ///< сфера, описанная около тетраэдра
     static Sphere createSphere( const P3D& pt1, const P3D& pt2, const P3D& pt3, const P3D& pt4 ) {
         auto v2 = pt2 - pt1;
         auto v3 = pt3 - pt1;
