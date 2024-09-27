@@ -1,3 +1,6 @@
+include(CTest)
+find_package(Qt6 REQUIRED COMPONENTS Test)
+
 FILE( GLOB TEST_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.cpp)
 
 #set(CMAKE_CXX_FLAGS "-g -O0 -Wall -coverage -fprofile-arcs -ftest-coverage")
@@ -32,14 +35,13 @@ FILE( GLOB TEST_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.cpp)
 #WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 #)
 
-#if(ENABLE_COVERAGE)
-  # set compiler flags
-  set(CMAKE_CXX_FLAGS "-O0 -coverage")
+set(CMAKE_CXX_FLAGS "-O0 -coverage -fprofile-arcs -ftest-coverage") # set compiler flags
 
-  # find required tools
-  find_program(LCOV lcov REQUIRED)
-  find_program(GENHTML genhtml REQUIRED)
+# find required tools
+find_program(LCOV lcov)
+find_program(GENHTML genhtml)
 
+if(LCOV AND GENHTML)
   # add coverage target
   add_custom_target(coverage
     # gather data
@@ -47,12 +49,20 @@ FILE( GLOB TEST_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.cpp)
     # generate report
     COMMAND ${GENHTML} --demangle-cpp -o coverage coverage.info
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-#endif()
+# отчёт о покрытии
+# lcov --directory . --capture --output-file coverage.info
+# genhtml --demangle-cpp -o coverage coverage.info
+endif()
 
 foreach( fl ${TEST_FILES} )
     string( REPLACE ".cpp" "" file ${fl} )
     set(test_name "test_${file}")
     add_executable( ${test_name} ${fl} )
+
+    target_link_libraries(${test_name}
+        PRIVATE
+            Qt::Test
+    )
 
     add_test(NAME ${test_name} COMMAND ${test_name})
 

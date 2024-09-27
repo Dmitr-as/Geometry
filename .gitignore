@@ -1,4 +1,5 @@
 .other
+build*
 
 # Prerequisites
 *.d
