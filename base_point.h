@@ -99,7 +99,7 @@ public:
     inline static constexpr T distance(const Point3D &p1, const Point3D &p2) noexcept{
         return sqrt( distanceQuad(p1, p2) );
     }
-
+    ///< выбрать удобную функцию dot
     static T dot(const Point3D &p1, const Point3D &p2) {
         return p1.x()*p2.x() + p1.y()*p2.y() + p1.z()*p2.z();
     }
@@ -122,11 +122,6 @@ public:
 
     template<typename U>
     Point3D<U> cast() const {return Point3D<U>(v[0], v[1], v[2]);}
-
-    friend std::ostream &operator<<(std::ostream &out, const Point3D &point) {
-        out << "(" << point.x() << ", " << point.y() << ", " << point.z() << ")";
-        return out;
-    }
 
     auto& shiftLeft() {
         std::rotate( std::begin(v),std::begin(v)+1, std::end(v) );

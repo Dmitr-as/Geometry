@@ -16,6 +16,8 @@ int main()
         assert(pt != pt2);
         assert(pt1 == pt2);
         assert(pt1 + pt2 == pt2 + pt1);
+        assert(pt1 * pt2 == pt2 * pt1);
+        assert(pt1 * pt2 == pt1);
         {
             pt = pt1 * 0;
             assert(pt.isNull());
@@ -23,11 +25,23 @@ int main()
             assert(pt.isNull());
         }
         {
+            pt = pt1;
+            pt *= 1.;
+            pt += pt1;
+            pt -= pt1;
+            assert(pt == pt1);
+        }
+        {
             assert(pt1 == pt1 * 1);
             assert(pt1 == 1 * pt1);
             assert((pt1 * 0).isNull());
             assert((0 * pt1).isNull());
         }
+        {
+            assert(( (pt * 0) / 0).isNotValid());
+        }
+
+        assert(Point3DReal::dot(pt1, pt2) == pt1.dot(pt2));
         assert(Point3DReal::dot(pt1, pt2) == 3.);
         assert(Point3DReal::cross(pt1, pt2).isNull());
     }
@@ -49,6 +63,5 @@ int main()
         assert(pt2 != pt1.shiftLeft());
         assert(pt2 != pt1.shiftRight());
     }
-
     return 0;
 }
