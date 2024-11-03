@@ -27,7 +27,7 @@ public:
     T distanceQuad(const P3D &point) const {
         return P3D::distanceQuad(point, projection(point));
     }
-    T distance(const P3D &point) const {
+    inline T distance(const P3D &point) const {
         return sqrt( distanceQuad(point) );
     }
 
@@ -43,7 +43,7 @@ public:
         }
         return ( pt_ - line.projection( pt_ ) ).normQuad();
     }
-    T distance(const Line &line) const {
+    inline T distance(const Line &line) const {
         return sqrt( distanceQuad(line) );
     }
 
@@ -57,7 +57,7 @@ public:
     }
 };
 
-
+// --------------------------------------------
 template<typename T>
 struct Plane {
     using P3D = Point3D<T>;
@@ -127,8 +127,7 @@ public:
     }
 };
 
-
-
+// ------------------------------------------------
 template<typename T>
 struct Edge {
     using P3D = Point3D<T>;
@@ -187,6 +186,7 @@ public:
     }
 };
 
+// ----------------------------------
 template<typename T>
 struct Triangle {
     using P3D = Point3D<T>;
@@ -245,6 +245,7 @@ Point3D<T> sphereCenterVector( const Point3D<T>& dir1, const Point3D<T>& dir2 ) 
     return ( dir2*deltaB + dir1*deltaA ) / delta;
 }
 
+// ---------------------------------------
 template<typename T>
 struct Sphere {
     using P3D = Point3D<T>;
@@ -319,10 +320,11 @@ bool goodTriangleNormals( const Point3D<T> &point1, const Point3D<T> &point2, co
     return P3D::dot( P3D::cross(edgeDir, edgePoint1 - point1), P3D::cross(edgePoint1 - point2, edgeDir) ) > 0;
 }
 
-#define Point3DReal Point3D<double>
-#define PlaneReal Plane<double>
-#define EdgeReal Edge<double>
-#define TriangleReal Triangle<double>
-#define SphereReal Sphere<double>
+using Point3DReal = Point3D<double>;
+using LineReal = Line<double>;
+using PlaneReal = Plane<double>;
+using EdgeReal = Edge<double>;
+using TriangleReal = Triangle<double>;
+using SphereReal = Sphere<double>;
 
 }
