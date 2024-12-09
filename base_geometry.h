@@ -11,44 +11,62 @@ struct Line {
 private:
     P3D pt_, dir_;
 public:
-    constexpr explicit Line(const P3D &point = P3D(), const P3D &dir = P3D())
+    constexpr explicit Line(const P3D &point = P3D(), const P3D &dir = P3D()) noexcept
         : pt_(point), dir_(dir) {}
 
-    P3D point(T dist = T(0)) const {return pt_ + dist*dir_;}
-    P3D direction() const {return dir_;}
+    constexpr P3D point(T dist = T(0)) const noexcept {return pt_ + dist*dir_;}
+    constexpr P3D direction() const noexcept {return dir_;}
 
-    bool isValid() const {
+    constexpr bool isValid() const noexcept {
         return !dir_.isNull();
     }
 
-    P3D projection(const P3D &point) const {
+    constexpr P3D projection(const P3D &point) const noexcept {
         return pt_ - dir_ * P3D::dot(dir_, pt_ - point);
     }
-    T distanceQuad(const P3D &point) const {
+    constexpr T distanceQuad(const P3D &point) const noexcept {
         return P3D::distanceQuad(point, projection(point));
     }
-    inline T distance(const P3D &point) const {
+    inline constexpr T distance(const P3D &point) const noexcept {
         return sqrt( distanceQuad(point) );
     }
-
-    T distanceQuad(const Line &line) const { // дописать
-        auto d2 = P3D::dot( dir_, line.dir_ );
-        auto del = 1 - d2*d2;
+private:
+    static constexpr T distanceQuad(const P3D &dir1, const P3D &point1, const P3D &dir2, const P3D &point2) {  // если вектора нормированные
+        auto d = P3D::dot( dir1, dir2 );
+        auto del = 1 - d*d;
         if(del > 0) {
-            auto delPt = line.pt_ - pt_;
-            auto del2 = d2*P3D::dot(dir_, delPt) - P3D::dot(line.dir_, delPt);
-            auto del1 = P3D::dot(dir_, delPt) - d2*P3D::dot(line.dir_, delPt);
-            auto dir = line.pt_ - pt_ + (line.dir_*del2 - dir_*del1) / del;
+            auto delPt = point2 - point1;
+            auto del2 = d*P3D::dot(dir1, delPt) - P3D::dot(dir2, delPt);
+            auto del1 = P3D::dot(dir1, delPt) - d*P3D::dot(dir2, delPt);
+            auto dir = delPt + (dir2*del2 - dir1*del1) / del;
             return dir.normQuad();
         }
-        return ( pt_ - line.projection( pt_ ) ).normQuad();
+        auto dpt = point1 - point2;
+        return ( dpt - dir2*P3D::dot(dir2, dpt) ).normQuad();
     }
-    inline T distance(const Line &line) const {
+
+public:
+    constexpr T distanceQuad(const Line &line) const {
+        return distanceQuad(line.dir_.normalized(), line.pt_, dir_.normalized(), pt_);
+        // auto d = P3D::dot( dir_, line.dir_ );
+        // auto r1Quad = dir_.normQuad();
+        // auto r2Quad = line.dir_.normQuad();
+        // auto del = r1Quad*r2Quad - d*d;
+        // if(del > 0) {
+        //     auto delPt = line.pt_ - pt_;
+        //     auto del1 = r2Quad*P3D::dot(dir_, delPt) - d*P3D::dot(line.dir_, delPt);
+        //     auto del2 = d*P3D::dot(dir_, delPt) - r1Quad*P3D::dot(line.dir_, delPt);
+        //     auto dir = delPt + (line.dir_*del2 - dir_*del1) / del;
+        //     return dir.normQuad();
+        // }
+        // return ( pt_ - line.projection( pt_ ) ).normQuad();
+    }
+    inline constexpr T distance(const Line &line) const noexcept {
         return sqrt( distanceQuad(line) );
     }
 
-    static Line createLine(const P3D &point1, const P3D &point2) {
-        return Line(point1, (point2 - point1).normalazed());
+    inline static constexpr Line createLine(const P3D &point1, const P3D &point2) noexcept {
+        return Line(point1, (point2 - point1).normalized());
     }
 
     friend std::ostream &operator<<(std::ostream &out, const Line<T> &line) {
@@ -86,7 +104,7 @@ public:
         auto v1 = pt1 - pt2;
         auto v2 = pt1 - pt3;
         Plane plane(P3D::cross(v1, v2));
-        if( plane.normal_.normalaze() ) {
+        if( plane.normal_.normalize() ) {
             plane.distance_ = - P3D::dot(plane.normal_, pt1);
         }
         return plane;
@@ -95,7 +113,7 @@ public:
         auto v1 = pt1 - pt2;
         auto v2 = pt1 - pt3;
         Plane plane(P3D::cross(v1, v2));
-        if( plane.normal_.normalaze() ) {
+        if( plane.normal_.normalize() ) {
             plane.distance_ = - P3D::dot(plane.normal_, pt1);
             if( !plane.isPositive( ptPositive ) ) {
                 plane.normal_ *= -1;
@@ -135,7 +153,7 @@ private:
     P3D pt1_, pt2_, dir_;
 public:
     explicit Edge(const P3D &point1, const P3D &point2)
-        : pt1_(point1), pt2_(point2), dir_((pt2_ - pt1_).normalazed()) {}
+        : pt1_(point1), pt2_(point2), dir_((pt2_ - pt1_).normalized()) {}
 
     P3D point1() const {return pt1_;}
     P3D point2() const {return pt2_;}
@@ -196,7 +214,7 @@ public:
     explicit Triangle(const P3D &point1, const P3D &point2, const P3D &point3)
         : pt1_(point1), dir1_(point2 - point1), dir2_(point3 - point1) {
         normal_ = P3D::cross(dir1_, dir2_);
-        normal_.normalaze();
+        normal_.normalize();
     }
 
     P3D point1() const {return pt1_;}
@@ -249,6 +267,7 @@ Point3D<T> sphereCenterVector( const Point3D<T>& dir1, const Point3D<T>& dir2 ) 
 template<typename T>
 struct Sphere {
     using P3D = Point3D<T>;
+    friend class Triangle<T>;
 private:
     P3D center_;
     T radius_;
@@ -256,7 +275,6 @@ public:
     explicit Sphere(const P3D& cntr, const T& rds)
         : center_(cntr), radius_(rds) {}
 
-    friend class Triangle<T>;
     P3D center() const {return center_;}
     T radius() const {return radius_;}
 

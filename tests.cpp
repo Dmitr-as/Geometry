@@ -10,8 +10,8 @@ int main(int argc, char *argv[])
         cout << "tests Point3D" << endl;
         Point3DReal pt1(1,1,0), pt2(0,-1,1), pt3;
 
-        cout << "normalazed " << pt1.normalazed() << endl;
-        cout << "normalazed " << pt3.normalazed() << endl;
+        cout << "normalized " << pt1.normalized() << endl;
+        cout << "normalized " << pt3.normalized() << endl;
         assert( !pt1.isNull() );
         assert( !pt2.isNull() );
         assert( pt3.isNull() );
