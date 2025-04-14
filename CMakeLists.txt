@@ -10,6 +10,7 @@ FILE( GLOB GET_HEAD_FILES *.h )
 add_executable(tests_base_geometry
     ${GET_HEAD_FILES}
     tests.cpp
+    rotation.h
 )
 
 enable_testing()

@@ -4,9 +4,6 @@
 using namespace std;
 using namespace gmtr;
 
-
-
-
 int main()
 {
     Point3DReal dir1(5, 1, 50), dir2(1, 5, 1), start(1,1,1);
