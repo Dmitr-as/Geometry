@@ -2,6 +2,8 @@ include(CTest)
 
 FILE( GLOB TEST_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.cpp)
 
+if(NOT MSVC)
+
 SET(GCC_COVERAGE_COMPILE_FLAGS "-fprofile-arcs -ftest-coverage")
 set(CMAKE_CXX_FLAGS "-O0 -coverage -fprofile-arcs -ftest-coverage") # set compiler flags
 SET(GCC_COVERAGE_LINK_FLAGS "-lgcov")
@@ -33,6 +35,8 @@ add_custom_target(covclear
     COMMAND rm -R coverage
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
+
+endif()
 
 foreach( fl ${TEST_FILES} )
     string( REPLACE ".cpp" "" file ${fl} )
