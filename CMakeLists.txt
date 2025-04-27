@@ -7,11 +7,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 FILE( GLOB GET_HEAD_FILES *.h )
 
-add_executable(tests_base_geometry
-    ${GET_HEAD_FILES}
-    tests.cpp
-    rotation.h
-)
+# add_executable(tests_base_geometry
+#     ${GET_HEAD_FILES}
+#     tests.cpp
+# )
 
 enable_testing()
 

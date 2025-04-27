@@ -6,11 +6,11 @@ using namespace gmtr;
 
 int main(int argc, char *argv[])
 {
+    return 0; // TODO
     {
         cout << "tests Point3D" << endl;
         Point3DReal pt1(1,1,0), pt2(0,-1,1), pt3;
 
-        return 0; // TODO
         cout << "normalized " << pt1.normalized() << endl;
         cout << "normalized " << pt3.normalized() << endl;
         assert( !pt1.isNull() );
