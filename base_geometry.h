@@ -338,6 +338,12 @@ bool goodTriangleNormals( const Point3D<T> &point1, const Point3D<T> &point2, co
     return P3D::dot( P3D::cross(edgeDir, edgePoint1 - point1), P3D::cross(edgePoint1 - point2, edgeDir) ) > 0;
 }
 
+template<std::floating_point T>
+auto orthogonal(const Point3D<T> &vector) {
+    auto t = std::abs(vector.x()) < 0.5 ? Point3D<T>{1.,0.,0.} : Point3D<T>{0.,1.,0.};
+    return Point3D<T>::cross(vector, t).normalized();
+}
+
 using Point3DReal = Point3D<double>;
 using LineReal = Line<double>;
 using PlaneReal = Plane<double>;

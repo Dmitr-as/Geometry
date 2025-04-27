@@ -9,14 +9,13 @@
 namespace gmtr {
 
 template<std::floating_point T>
-//requires std::is_floating_point<T>::value
 struct Point3D {
 private:
     T v[3];
 public:
     typedef T value_type;
-    constexpr explicit Point3D( T x = T(0), T y = T(0), T z = T(0) )
-        : v{x, y, z} {}
+    constexpr Point3D( T x = T(0), T y = T(0), T z = T(0) )
+        : v{x, y, z} {};
 
     constexpr T x() const noexcept {return v[0];}
     constexpr T y() const noexcept {return v[1];}

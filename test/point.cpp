@@ -63,5 +63,17 @@ int main()
         assert(pt2 != pt1.shiftLeft());
         assert(pt2 != pt1.shiftRight());
     }
+    {
+        int n = 100;
+        for(int x = -n; x < n; ++x) {
+            for(int y = -n; y < n; ++y) {
+                for(int z = -n; z < n; ++z) {
+                    Point3DReal pt(x,y,z);
+                    auto ptOrt = orthogonal(pt);
+                    assert( Point3DReal::dot(pt, ptOrt) < 1e-6 );
+                }
+            }
+        }
+    }
     return 0;
 }
